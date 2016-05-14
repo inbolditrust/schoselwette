@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Sign Up</h1>
+
+<form action="/register" method="post" name="register">
+    {{ form.hidden_tag() }}
+      {{ render_field(form.first_name) }}<br>
+      {{ render_field(form.last_name) }}<br>
+      {{ render_field(form.email) }}<br>
+      {{ render_field(form.password) }}<br>
+      {{ render_field(form.confirm) }}<br>
+    <p><input type="submit" value="Register"></p>
+</form>
+
+<a href='index'>Cancel</a>
+
+{% endblock %}

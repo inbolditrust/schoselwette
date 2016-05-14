@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% for bet in current_user.bets %}
+
+{{ bet.match.date }} {{ bet.match.team1.long_name }} - {{ bet.match.team2.long_name }}<br>
+
+{% endfor %}
+
+{% endblock %}

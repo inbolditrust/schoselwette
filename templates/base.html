@@ -1,0 +1,26 @@
+{% from "_formhelpers.html" import render_field %}
+<!DOCTYPE html>
+<html>
+  <head>
+      <meta name="csrf-token" content="{{ csrf_token() }}">
+      <title>muh</title>
+      {% block head %}{% endblock %}
+  </head>
+  <body>
+    {% if current_user.is_authenticated %}
+  You are {{ current_user.name }}!
+  <a href='logout'>Logout</a>
+  <hr>
+{% endif %}
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul>
+        {% for message in messages %}
+            <li>{{ message }} </li>
+        {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+{% block content %}{% endblock %}
+  </body>
+</html>
