@@ -1,3 +1,24 @@
-long_name,short_name,group
-Austria,AUT,C
-Switzerland,SUI,D
+A,France,FRA
+A,Romania,ROU
+A,Albania,ALB
+A,Switzerland,SUI
+B,England,ENG
+B,Russia,RUS
+B,Wales,WAL
+B,Slovakia,SVK
+C,Germany,GER
+C,Ukraine,UKR
+C,Poland,POL
+C,Northern Ireland,NIR
+D,Spain,ESP
+D,Czech Republic,CZE
+D,Turkey,TUR
+D,Croatia,CRO
+E,Belgium,BEL
+E,Italy,ITA
+E,Ireland,IRL
+E,Sweden,SWE
+F,Portugal,POR
+F,Iceland,ISL
+F,Austria,AUT
+F,Hungary,HUN

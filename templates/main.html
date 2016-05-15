@@ -2,10 +2,34 @@
 
 {% block content %}
 
-{% for bet in current_user.bets %}
+<h1>Tips</h1>
+<form action="/main" method="post" name="main">
+{{ form.hidden_tag() }}
 
-{{ bet.match.date }} {{ bet.match.team1.long_name }} - {{ bet.match.team2.long_name }}<br>
+{% for match, bet in zip(matches, form.bets): %}
+
+Group {{ match.team1.group }}
+
+{{ match.date }}
+
+{{ match.team1.name }}
+
+{% for subfield in bet.outcome %}
+        {{ subfield }}
+        {{ subfield.label }}
+{% endfor %}
+
+{{ match.team2.name }}
+
+{{ bet.supertip }}
+
+<br>
 
 {% endfor %}
 
+<p><input type="submit" value="Save"></p>
+</form>
+
 {% endblock %}
+
+venv

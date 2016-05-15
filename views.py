@@ -1,3 +1,5 @@
+from collections import namedtuple
+from werkzeug.datastructures import MultiDict
 from flask import flash, render_template, request, redirect, jsonify, url_for
 from flask_mail import Message
 from flask.ext.login import login_user
@@ -6,9 +8,9 @@ from flask.ext.login import current_user
 from flask.ext.login import login_required
 from wette import app, db_session, ModelForm, mail
 
-from models import User, Match, Outcome
+from models import Bet, User, Match, Outcome
 
-from wtforms.fields import TextField, DecimalField, PasswordField, SelectField
+from wtforms.fields import BooleanField, TextField, DecimalField, PasswordField, SelectField, FormField, FieldList, RadioField
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import Optional, Required, EqualTo, Length
 
@@ -95,6 +97,8 @@ def register():
         user.password = hashlib.md5(bytes(salt + user.password, 'utf-8')).hexdigest()
         db_session.add(user)
 
+        user.create_missing_bets()
+
         msg = Message('Hello',
                   sender='euro2016@schosel.net',
                   recipients=[user.email])
@@ -105,22 +109,53 @@ def register():
 
     return render_template('register.html', form=form)
 
-class BetForm(Form):
+class BetForm(ModelForm):
+    class Meta:
+        model = Bet
 
-    def append_field(self, name, field):
-        setattr(self, name, field)
+    #TODO: How can enum be rendered automatically as a select form?
+    outcome = RadioField('Label', choices=[(o,o) for o in Outcome.enums])
+
+class BetsForm(Form):
+    bets = FieldList(FormField(BetForm))
 
 @app.route('/')
-@app.route('/main')
+@app.route('/main', methods=['GET', 'POST'])
 @login_required
 def main():
 
-    # form = BetForm()
-    #
-    # bets = current_user.bets
+    #Collect all matches
+    matches = [bet.match for bet in current_user.bets]
 
-    #This numbering might be dangerous
-    # for i, bet in enumerate(bets):
-    #     form.append_field('bet_' + i, SelectField(choices=Outcome))
+    if request.method == 'GET':
 
-    return render_template('main.html')
+        # drop bets into a multidictionary
+        bets_dict = MultiDict({'bets': current_user.bets})
+
+        # Build form
+        form = BetsForm(data=(bets_dict))
+
+    if request.method == 'POST':
+
+        form = BetsForm()
+
+        #TODO: Check for supertipp count here
+
+        if form.validate():
+
+            bet_forms = form['bets']
+
+            #For each row
+            for bet_form, bet in zip(bet_forms, current_user.bets):
+
+                #For each attribute of this row
+                for name, field in bet_form.data.items():
+
+                    #Set the property of the corresponding bet of the user
+                    setattr(bet, name, field)
+
+        else:
+            print('Should not happen')
+
+
+    return render_template('main.html', matches=matches, form=form)

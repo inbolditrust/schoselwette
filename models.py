@@ -1,5 +1,5 @@
 from wette import Base, db_session
-from sqlalchemy import Column, Boolean, DateTime, String, Integer, ForeignKey, Enum
+from sqlalchemy import Column, Boolean, DateTime, String, Integer, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy_utils import EmailType
 from sqlalchemy.orm import relationship
 
@@ -15,12 +15,11 @@ class User(Base):
 
     champion = relationship('Team')
 
-    @property
-    def bets(self):
+    def create_missing_bets(self):
 
         all_matches = db_session.query(Match)
 
-        matches_of_existing_bets = [bet.match for bet in self.existing_bets]
+        matches_of_existing_bets = [bet.match for bet in self.bets]
 
         matches_without_bets = [match for match in all_matches if match not in matches_of_existing_bets]
 
@@ -28,8 +27,6 @@ class User(Base):
             bet = Bet()
             bet.user = self
             bet.match = match
-
-        return self.existing_bets
 
     @property
     def is_authenticated(self):
@@ -50,16 +47,26 @@ class User(Base):
     def name(self):
         return self.first_name + ' ' + self.last_name[:1] + '.'
 
+    def __repr__(self):
+        return '<User: id={}, email={}, first_name={}, last_name={}, paid={}, champion_id={}>'.format(
+            self.id, self.email, self.first_name, self.last_name, self.paid, self.champion_id)
+
+
 
 class Team(Base):
     __tablename__ = 'teams'
     id = Column(Integer, primary_key=True)
-    long_name = Column(String(128), nullable=False)
-    short_name = Column(String(3), nullable=False)
+    name = Column(String(128), nullable=False, unique=True)
+    short_name = Column(String(3), nullable=False, unique=True)
     group = Column(String(1), nullable=False)
-    champion = Column(Boolean, nullable=False)
+    champion = Column(Boolean, default=False, nullable=False)
 
-Outcome = Enum('1', '2', 'X')
+    def __repr__(self):
+        return '<Team: id={}, name={}, short_name={}, group={}, champion={}>'.format(
+            self.id, self.name, self.short_name, self.group, self.champion)
+
+Outcome = Enum('1', 'X', '2')
+Stage = Enum('Group stage', 'Round of 16', 'Quarter-finals', 'Semi-finals', 'Final')
 
 class Match(Base):
     __tablename__ = 'matches'
@@ -67,10 +74,12 @@ class Match(Base):
     team1_id = Column(Integer, ForeignKey('teams.id'), nullable=False)
     team2_id = Column(Integer, ForeignKey('teams.id'), nullable=False)
     date = Column(DateTime, nullable=False)
+    stage = Column(Stage)
     outcome = Column(Outcome)
 
     team1 = relationship('Team', foreign_keys=[team1_id])
     team2 = relationship('Team', foreign_keys=[team2_id])
+    __table_args__ = (UniqueConstraint('team1_id', 'team2_id', 'stage'),)
 
     # Returns a dictionary from outcome -> odd
     def get_odds(self):
@@ -86,6 +95,10 @@ class Match(Base):
         #TODO: normalize using n
         return counter
 
+    def __repr__(self):
+        return '<Match: id={}, team1={}, team2={}, date={}, stage={}, outcome={}>'.format(
+            self.id, self.team1.name, self.team2.name, self.date, self.stage, self.outcome)
+
 
 class Bet(Base):
     __tablename__ = 'bets'
@@ -93,9 +106,16 @@ class Bet(Base):
     user_id = Column(Integer, ForeignKey('users.id'))
     match_id = Column(Integer, ForeignKey('matches.id'))
     outcome = Column(Outcome)
+    supertip = Column(Boolean, default=False, nullable=False)
 
-    user = relationship('User', backref='existing_bets')
+    user = relationship('User', backref='bets')
     match = relationship('Match', backref='bets')
+
+    __table_args__ = (UniqueConstraint('user_id', 'match_id'),)
 
     def is_valid(self):
         return self.outcome is not None
+
+    def __repr__(self):
+        return '<Bet: id={}, user_id={}, match_id={}, outcome={}>'.format(
+            self.id, self.user_id, self.match_id, self.outcome)
