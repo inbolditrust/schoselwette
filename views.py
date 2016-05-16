@@ -10,7 +10,7 @@ from wette import app, db_session, ModelForm, mail
 
 from models import Bet, User, Match, Outcome
 
-from wtforms.fields import BooleanField, TextField, DecimalField, PasswordField, SelectField, FormField, FieldList, RadioField
+from wtforms.fields import BooleanField, TextField, DecimalField, PasswordField, SelectField, FormField, FieldList, RadioField, HiddenField
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import Optional, Required, EqualTo, Length
 
@@ -82,6 +82,13 @@ def login():
 
     return render_template('login.html', form=form)
 
+def send_mail(msg):
+    try:
+        mail.send(msg)
+    except:
+        print('Tried to send mail, did not work.')
+        print(msg)
+
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegistrationForm()
@@ -103,18 +110,30 @@ def register():
                   sender='euro2016@schosel.net',
                   recipients=[user.email])
 
-        mail.send(msg)
+        send_mail(msg)
 
         return render_template('register_success.html')
 
     return render_template('register.html', form=form)
+
+def str_or_none(s):
+    if s is None:
+        return None
+    return str(s)
+
 
 class BetForm(ModelForm):
     class Meta:
         model = Bet
 
     #TODO: How can enum be rendered automatically as a select form?
-    outcome = RadioField('Label', choices=[(o,o) for o in Outcome.enums])
+    #TODO: this seems to be a required field. why?
+    outcome = RadioField('Label', choices=[(o,o) for o in Outcome.enums], validators=[Optional()], coerce=str_or_none)
+
+    #This stuff is important.
+    dummy = HiddenField('arsch', default='foo')
+
+
 
 class BetsForm(Form):
     bets = FieldList(FormField(BetForm))
@@ -143,19 +162,6 @@ def main():
 
         if form.validate():
 
-            bet_forms = form['bets']
-
-            #For each row
-            for bet_form, bet in zip(bet_forms, current_user.bets):
-
-                #For each attribute of this row
-                for name, field in bet_form.data.items():
-
-                    #Set the property of the corresponding bet of the user
-                    setattr(bet, name, field)
-
-        else:
-            print('Should not happen')
-
+            form.populate_obj(current_user)
 
     return render_template('main.html', matches=matches, form=form)

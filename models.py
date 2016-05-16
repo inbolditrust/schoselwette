@@ -1,3 +1,4 @@
+from collections import Counter
 from wette import Base, db_session
 from sqlalchemy import Column, Boolean, DateTime, String, Integer, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy_utils import EmailType
@@ -68,6 +69,11 @@ class Team(Base):
 Outcome = Enum('1', 'X', '2')
 Stage = Enum('Group stage', 'Round of 16', 'Quarter-finals', 'Semi-finals', 'Final')
 
+def unicode_or_none(s):
+    if s is None:
+        return None
+    return unicode(s)
+
 class Match(Base):
     __tablename__ = 'matches'
     id = Column(Integer, primary_key=True)
@@ -82,17 +88,20 @@ class Match(Base):
     __table_args__ = (UniqueConstraint('team1_id', 'team2_id', 'stage'),)
 
     # Returns a dictionary from outcome -> odd
-    def get_odds(self):
+    @property
+    def odds(self):
 
-        valid_outcomes = [bet.outcome for bet in self.bets if bet.is_valid()]
+        valid_bets = [bet for bet in self.bets if bet.is_valid()]
+        valid_outcomes = [bet.outcome for bet in valid_bets]
 
-        n = len(valid_outcomes)
-
-        from collections import Counter
+        n = len(valid_bets)
 
         counter = Counter(valid_outcomes)
 
         #TODO: normalize using n
+        for o in counter.keys():
+            counter[o] = n / counter[o] #n is always greater than counter
+
         return counter
 
     def __repr__(self):
@@ -116,6 +125,18 @@ class Bet(Base):
     def is_valid(self):
         return self.outcome is not None
 
+    @property
+    def points(self):
+
+        #Make sure that outcome is not None
+        if not self.is_valid():
+            return 0
+
+        odds = self.match.odds
+
+        return odds[self.outcome]
+
+
     def __repr__(self):
-        return '<Bet: id={}, user_id={}, match_id={}, outcome={}>'.format(
-            self.id, self.user_id, self.match_id, self.outcome)
+        return '<Bet: id={}, user={}, team1={}, team2={}, stage={}, supertip={}, outcome={}>'.format(
+            self.id, self.user.name, self.match.team1.name, self.match.team2.name, self.match.stage, self.supertip, self.outcome)

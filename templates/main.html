@@ -8,6 +8,8 @@
 
 {% for match, bet in zip(matches, form.bets): %}
 
+{{ bet.dummy }}
+
 Group {{ match.team1.group }}
 
 {{ match.date }}
@@ -21,7 +23,7 @@ Group {{ match.team1.group }}
 
 {{ match.team2.name }}
 
-{{ bet.supertip }}
+{{ render_field(bet.supertip) }}
 
 <br>
 
