@@ -10,6 +10,8 @@
     {% if current_user.is_authenticated %}
   You are {{ current_user.name }}!
   <a href='logout'>Logout</a>
+  <br>
+  <a href='main'>Home</a> <a href='scoreboard'>Scoreboard</a>
   <hr>
 {% endif %}
     {% with messages = get_flashed_messages() %}

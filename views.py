@@ -165,3 +165,14 @@ def main():
             form.populate_obj(current_user)
 
     return render_template('main.html', matches=matches, form=form)
+
+@app.route('/')
+@app.route('/scoreboard')
+@login_required
+def scoreboard():
+
+    users = db_session.query(User)
+
+    users_sorted = sorted(users, key=lambda x: x.points, reverse=True)
+
+    return render_template('scoreboard.html', scoreboard = users_sorted)

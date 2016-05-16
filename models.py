@@ -16,6 +16,11 @@ class User(Base):
 
     champion = relationship('Team')
 
+    @property
+    def points(self):
+
+        return sum([bet.points for bet in self.bets])
+
     def create_missing_bets(self):
 
         all_matches = db_session.query(Match)
@@ -30,6 +35,11 @@ class User(Base):
             bet.match = match
 
     @property
+    def name(self):
+        return self.first_name + ' ' + self.last_name[:1] + '.'
+
+    # BEGIN This is for flask login
+    @property
     def is_authenticated(self):
         return True
 
@@ -43,10 +53,7 @@ class User(Base):
 
     def get_id(self):
         return str(self.id)
-
-    @property
-    def name(self):
-        return self.first_name + ' ' + self.last_name[:1] + '.'
+    # END
 
     def __repr__(self):
         return '<User: id={}, email={}, first_name={}, last_name={}, paid={}, champion_id={}>'.format(
@@ -68,11 +75,6 @@ class Team(Base):
 
 Outcome = Enum('1', 'X', '2')
 Stage = Enum('Group stage', 'Round of 16', 'Quarter-finals', 'Semi-finals', 'Final')
-
-def unicode_or_none(s):
-    if s is None:
-        return None
-    return unicode(s)
 
 class Match(Base):
     __tablename__ = 'matches'
@@ -130,6 +132,10 @@ class Bet(Base):
 
         #Make sure that outcome is not None
         if not self.is_valid():
+            return 0
+
+        #Make sure that the bet is correct
+        if self.outcome != self.match.outcome:
             return 0
 
         odds = self.match.odds

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Scoreboard</h1>
+
+{% for user in scoreboard %}
+
+{{ user.points }} {{ user.name }}<br>
+
+{% endfor %}
+
+{% endblock %}
