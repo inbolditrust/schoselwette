@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>{{ match.team1.name }} - {{ match.team2.name }}</h1>
+
+Hier sollte man die Quoten anzeigen<br>
+
+{% for bet in match.bets %}
+
+{% if not bet.match.editable %}
+
+<a href='user/{{ bet.user.id }}'>{{ bet.user.name }}</a> - {{ bet.outcome }} {{ bet.match.outcome }} {{ bet.points }}<br>
+
+{% endif %}
+
+{% endfor %}
+
+{% endblock %}

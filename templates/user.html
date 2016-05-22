@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>{{ user.name }}</h1>
+
+{% for bet in user.bets %}
+
+{% if not bet.editable %}
+
+<a href='match/{{ bet.match.id }}'>{{ bet.match.team1.name }} - {{ bet.match.team2.name }}</a> {{ bet.outcome }} {{ bet.match.outcome }} {{ bet.points }}<br>
+
+{% endif %}
+
+{% endfor %}
+
+{% endblock %}

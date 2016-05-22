@@ -6,24 +6,36 @@
 <form action="/main" method="post" name="main">
 {{ form.hidden_tag() }}
 
-{% for match, bet in zip(matches, form.bets): %}
+{{ render_field(championForm.champion_id)}}<br>
 
-{{ bet.dummy }}
+<br>
 
-Group {{ match.team1.group }}
+{% for bet, bet_form in zip(bets, form.bets): %}
 
-{{ match.date }}
+{{ bet_form.dummy }}
 
-{{ match.team1.name }}
+Group {{ bet.match.team1.group }}
 
-{% for subfield in bet.outcome %}
+{{ bet.match.date }}
+
+{{ bet.match.team1.name }}
+
+{% if bet.match.editable %}
+
+{% for subfield in bet_form.outcome %}
         {{ subfield }}
         {{ subfield.label }}
 {% endfor %}
 
-{{ match.team2.name }}
+{% else %}
 
-{{ render_field(bet.supertip) }}
+outome is {{ bet.outcome }}
+
+{% endif %}
+
+{{ bet.match.team2.name }}
+
+{{ bet_form.supertip }}
 
 <br>
 

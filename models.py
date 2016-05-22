@@ -3,6 +3,7 @@ from wette import Base, db_session
 from sqlalchemy import Column, Boolean, DateTime, String, Integer, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy_utils import EmailType
 from sqlalchemy.orm import relationship
+import datetime
 
 class User(Base):
     __tablename__ = 'users'
@@ -59,6 +60,10 @@ class User(Base):
         return '<User: id={}, email={}, first_name={}, last_name={}, paid={}, champion_id={}>'.format(
             self.id, self.email, self.first_name, self.last_name, self.paid, self.champion_id)
 
+    @property
+    def champion_editable(self):
+        first_match = db_session.query(Match).order_by('date').first()
+        return first_match.date > datetime.datetime.now()
 
 
 class Team(Base):
@@ -89,11 +94,17 @@ class Match(Base):
     team2 = relationship('Team', foreign_keys=[team2_id])
     __table_args__ = (UniqueConstraint('team1_id', 'team2_id', 'stage'),)
 
+    @property
+    def editable(self):
+        #return self.match.date > datetime.datetime.now()
+        return self.date > datetime.datetime(year=2016, month=6, day=11)
+
+
     # Returns a dictionary from outcome -> odd
     @property
     def odds(self):
 
-        valid_bets = [bet for bet in self.bets if bet.is_valid()]
+        valid_bets = [bet for bet in self.bets if bet.valid]
         valid_outcomes = [bet.outcome for bet in valid_bets]
 
         n = len(valid_bets)
@@ -124,14 +135,15 @@ class Bet(Base):
 
     __table_args__ = (UniqueConstraint('user_id', 'match_id'),)
 
-    def is_valid(self):
+    @property
+    def valid(self):
         return self.outcome is not None
 
     @property
     def points(self):
 
         #Make sure that outcome is not None
-        if not self.is_valid():
+        if not self.valid:
             return 0
 
         #Make sure that the bet is correct

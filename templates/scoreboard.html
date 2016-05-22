@@ -6,7 +6,7 @@
 
 {% for user in scoreboard %}
 
-{{ user.points }} {{ user.name }}<br>
+{{ user.points }} <a href='user/{{ user.id }}'>{{ user.name }}</a><br>
 
 {% endfor %}
 

@@ -8,7 +8,7 @@ from flask.ext.login import current_user
 from flask.ext.login import login_required
 from wette import app, db_session, ModelForm, mail
 
-from models import Bet, User, Match, Outcome
+from models import Bet, User, Match, Outcome, Team
 
 from wtforms.fields import BooleanField, TextField, DecimalField, PasswordField, SelectField, FormField, FieldList, RadioField, HiddenField
 from wtforms.fields.html5 import EmailField
@@ -138,15 +138,28 @@ class BetForm(ModelForm):
 class BetsForm(Form):
     bets = FieldList(FormField(BetForm))
 
+def int_or_null(v):
+
+    try:
+        ret = int(v)
+    except:
+        #TODO: Check exactly what kind of exception occurs here
+        ret = None
+
+    return ret
+
+class ChampionForm(Form):
+    champion_id = SelectField('Champion', coerce=int_or_null, choices=[(None, '')] + [(t.id, t.name) for t in db_session.query(Team).order_by('name')])
+
 @app.route('/')
 @app.route('/main', methods=['GET', 'POST'])
 @login_required
 def main():
 
-    #Collect all matches
-    matches = [bet.match for bet in current_user.bets]
 
     if request.method == 'GET':
+
+        championForm = ChampionForm(obj=current_user)
 
         # drop bets into a multidictionary
         bets_dict = MultiDict({'bets': current_user.bets})
@@ -158,15 +171,23 @@ def main():
 
         form = BetsForm()
 
+        championForm = ChampionForm()
+
         #TODO: Check for supertipp count here
 
         if form.validate():
 
             form.populate_obj(current_user)
 
-    return render_template('main.html', matches=matches, form=form)
+        if current_user.champion_editable and championForm.validate():
 
-@app.route('/')
+            print('arrived data:', championForm.champion_id.data)
+
+            #Strange enough, when championForm.chapmpion_id.data is '', this is interpreted as a NULL value for sqlalchemy on int types?
+            current_user.champion_id = championForm.champion_id.data
+
+    return render_template('main.html', bets=current_user.bets, form=form, championForm=championForm)
+
 @app.route('/scoreboard')
 @login_required
 def scoreboard():
@@ -176,3 +197,19 @@ def scoreboard():
     users_sorted = sorted(users, key=lambda x: x.points, reverse=True)
 
     return render_template('scoreboard.html', scoreboard = users_sorted)
+
+@app.route('/user/<int:user_id>')
+@login_required
+def user(user_id):
+
+    user = db_session.query(User).filter(User.id == user_id).one()
+
+    return render_template('user.html', user=user)
+
+@app.route('/match/<int:match_id>')
+@login_required
+def match(match_id):
+
+    match = db_session.query(Match).filter(Match.id == match_id).one()
+
+    return render_template('match.html', match=match)
