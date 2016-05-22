@@ -6,13 +6,13 @@
 <form action="/main" method="post" name="main">
 {{ form.hidden_tag() }}
 
-{{ render_field(championForm.champion_id)}}<br>
+{{ render_field(form.champion_id)}}<br>
 
 <br>
 
-{% for bet, bet_form in zip(bets, form.bets): %}
+{% for bet in bets: %}
 
-{{ bet_form.dummy }}
+{% if not bet.match.editable %}<a href='/match/{{ bet.match.id}}'>{% endif %}
 
 Group {{ bet.match.team1.group }}
 
@@ -22,20 +22,26 @@ Group {{ bet.match.team1.group }}
 
 {% if bet.match.editable %}
 
-{% for subfield in bet_form.outcome %}
-        {{ subfield }}
-        {{ subfield.label }}
-{% endfor %}
+<input type='radio' name='outcome-{{ bet.match.id }}' {% if bet.outcome == '1' %}checked{% endif %} value='1'>
+<input type='radio' name='outcome-{{ bet.match.id }}' {% if bet.outcome == 'X' %}checked{% endif %} value='X'>
+<input type='radio' name='outcome-{{ bet.match.id }}' {% if bet.outcome == '2' %}checked{% endif %} value='2'>
+
+<input type='checkbox' name='supertip-{{ bet.match.id }}' {% if bet.supertip %}checked{% endif %}>
 
 {% else %}
 
-outome is {{ bet.outcome }}
+<input type='radio' disabled='true' {% if bet.outcome == '1' %}checked{% endif %}>
+<input type='radio' disabled='true' {% if bet.outcome == 'X' %}checked{% endif %}>
+<input type='radio' disabled='true' {% if bet.outcome == '2' %}checked{% endif %}>
+
+<input type='checkbox' disabled='true' {% if bet.supertip %}checked{% endif %}>
 
 {% endif %}
 
 {{ bet.match.team2.name }}
 
-{{ bet_form.supertip }}
+{% if not bet.match.editable %}</a> {{ bet.points }} points {% endif %}
+
 
 <br>
 
@@ -45,5 +51,3 @@ outome is {{ bet.outcome }}
 </form>
 
 {% endblock %}
-
-venv

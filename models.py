@@ -2,7 +2,7 @@ from collections import Counter
 from wette import Base, db_session
 from sqlalchemy import Column, Boolean, DateTime, String, Integer, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy_utils import EmailType
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 import datetime
 
 class User(Base):
@@ -96,8 +96,8 @@ class Match(Base):
 
     @property
     def editable(self):
-        #return self.match.date > datetime.datetime.now()
-        return self.date > datetime.datetime(year=2016, month=6, day=11)
+        # return self.date > datetime.datetime.now()
+        return self.date > datetime.datetime(year=2016, month=6, day=15)
 
 
     # Returns a dictionary from outcome -> odd
@@ -130,8 +130,8 @@ class Bet(Base):
     outcome = Column(Outcome)
     supertip = Column(Boolean, default=False, nullable=False)
 
-    user = relationship('User', backref='bets')
     match = relationship('Match', backref='bets')
+    user = relationship('User', backref='bets')
 
     __table_args__ = (UniqueConstraint('user_id', 'match_id'),)
 

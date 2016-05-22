@@ -138,7 +138,7 @@ class BetForm(ModelForm):
 class BetsForm(Form):
     bets = FieldList(FormField(BetForm))
 
-def int_or_null(v):
+def int_or_none(v):
 
     try:
         ret = int(v)
@@ -149,44 +149,54 @@ def int_or_null(v):
     return ret
 
 class ChampionForm(Form):
-    champion_id = SelectField('Champion', coerce=int_or_null, choices=[(None, '')] + [(t.id, t.name) for t in db_session.query(Team).order_by('name')])
+    champion_id = SelectField('Champion',
+        choices=[(None, '')] + [(t.id, t.name) for t in db_session.query(Team).order_by('name')],
+        coerce=int_or_none)
 
 @app.route('/')
 @app.route('/main', methods=['GET', 'POST'])
 @login_required
 def main():
 
-
     if request.method == 'GET':
 
-        championForm = ChampionForm(obj=current_user)
-
-        # drop bets into a multidictionary
-        bets_dict = MultiDict({'bets': current_user.bets})
-
-        # Build form
-        form = BetsForm(data=(bets_dict))
+        form = ChampionForm(obj=current_user)
 
     if request.method == 'POST':
 
-        form = BetsForm()
+        form = ChampionForm()
 
-        championForm = ChampionForm()
-
-        #TODO: Check for supertipp count here
-
+        #This is just for the champion tip
         if form.validate():
 
             form.populate_obj(current_user)
 
-        if current_user.champion_editable and championForm.validate():
+        #TODO: Check for supertipp count here
 
-            print('arrived data:', championForm.champion_id.data)
+        #We only deal with editable bets here so that we do not by accident change old data
+        editable_bets = [bet for bet in current_user.bets if bet.match.editable]
 
-            #Strange enough, when championForm.chapmpion_id.data is '', this is interpreted as a NULL value for sqlalchemy on int types?
-            current_user.champion_id = championForm.champion_id.data
+        #Iterate over all editable tips
+        for bet in editable_bets:
+            # We need to set all supertips and outcomes to None/False,
+            # as unechecked boxes and radio fields are not contained in the form
 
-    return render_template('main.html', bets=current_user.bets, form=form, championForm=championForm)
+            bet.outcome = None
+            bet.supertip = False
+
+            outcomeField = 'outcome-{}'.format(bet.match.id)
+            supertipField = 'supertip-{}'.format(bet.match.id)
+
+            if outcomeField in request.form:
+                bet.outcome = request.form[outcomeField]
+
+            if supertipField in request.form:
+                #No matter what was submitted, it means the box was checked
+                bet.supertip = True
+
+    sorted_bets = sorted(current_user.bets, key=lambda x: x.match.date)
+
+    return render_template('main.html', bets=sorted_bets, form=form)
 
 @app.route('/scoreboard')
 @login_required
