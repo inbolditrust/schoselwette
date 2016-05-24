@@ -18,7 +18,6 @@ from flask_wtf import Form
 
 import hashlib
 
-salt = 'esekaesjAWFAKJnn;ea'
 
 
 @app.route('/')
@@ -62,7 +61,7 @@ def login():
 
         #Connect loginform and database
 
-        q = db_session.query(User).filter(User.email == form.email.data, User.password == hashlib.md5(bytes(salt + form.password.data, 'utf-8')).hexdigest())
+        q = db_session.query(User).filter(User.email == form.email.data, User.password == hashlib.md5(bytes(app.config['PASSWORD_SALT'] + form.password.data, 'utf-8')).hexdigest())
 
         user = q.first()
 
@@ -84,6 +83,7 @@ def login():
 
 def send_mail(msg):
     try:
+        msg.sender = 'euro2016@schosel.net'
         mail.send(msg)
     except:
         print('Tried to send mail, did not work.')
@@ -101,16 +101,17 @@ def register():
         user.paid = False
 
         #Create password hash
-        user.password = hashlib.md5(bytes(salt + user.password, 'utf-8')).hexdigest()
+        user.password = hashlib.md5(bytes(app.config['PASSWORD_SALT'] + user.password, 'utf-8')).hexdigest()
         db_session.add(user)
 
         user.create_missing_bets()
 
-        msg = Message('Hello',
-                  sender='euro2016@schosel.net',
-                  recipients=[user.email])
+        send_mail(Message('Hello',
+                  recipients=[user.email]))
 
-        send_mail(msg)
+        send_mail(Message('Neuer Schoselwetter',
+                  body=str(user),
+                  recipients=['gnebehay@gmail.com']))
 
         return render_template('register_success.html')
 

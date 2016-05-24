@@ -88,7 +88,8 @@ class Match(Base):
     team2_id = Column(Integer, ForeignKey('teams.id'), nullable=False)
     date = Column(DateTime, nullable=False)
     stage = Column(Stage)
-    outcome = Column(Outcome)
+    goals_team1 = Column(Integer)
+    goals_team2 = Column(Integer)
 
     team1 = relationship('Team', foreign_keys=[team1_id])
     team2 = relationship('Team', foreign_keys=[team2_id])
@@ -96,9 +97,18 @@ class Match(Base):
 
     @property
     def editable(self):
-        # return self.date > datetime.datetime.now()
+        #return self.date > datetime.datetime.now()
         return self.date > datetime.datetime(year=2016, month=6, day=15)
 
+    @property
+    def outcome(self):
+        if self.goals_team1 is None or self.goals_team2 is None:
+            return None
+        if self.goals_team1 > self.goals_team2:
+            return '1'
+        if self.goals_team1 < self.goals_team2:
+            return '2'
+        return 'X'
 
     # Returns a dictionary from outcome -> odd
     @property
@@ -118,8 +128,8 @@ class Match(Base):
         return counter
 
     def __repr__(self):
-        return '<Match: id={}, team1={}, team2={}, date={}, stage={}, outcome={}>'.format(
-            self.id, self.team1.name, self.team2.name, self.date, self.stage, self.outcome)
+        return '<Match: id={}, team1={}, team2={}, date={}, stage={}, goals_team1={}, goals_team2={}>'.format(
+            self.id, self.team1.name, self.team2.name, self.date, self.stage, self.goals_team1, self.goals_team2)
 
 
 class Bet(Base):

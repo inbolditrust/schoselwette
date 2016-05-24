@@ -4,16 +4,18 @@
 
 <h1>{{ match.team1.name }} - {{ match.team2.name }}</h1>
 
-Hier sollte man die Quoten anzeigen<br>
+{% if not match.editable %}
 
 {% for bet in match.bets %}
 
-{% if not bet.match.editable %}
+{% if bet.valid %}
 
-<a href='/user/{{ bet.user.id }}'>{{ bet.user.name }}</a> - {{ bet.outcome }} {{ bet.match.outcome }} {{ bet.points }}<br>
+<a href='/user/{{ bet.user.id }}'>{{ bet.user.name }}</a> - {{ bet.outcome }} {{ bet.match.outcome if bet.match.outcome is not none }} {{ bet.points }}<br>
 
 {% endif %}
 
 {% endfor %}
+
+{% endif %}
 
 {% endblock %}

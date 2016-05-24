@@ -6,9 +6,9 @@
 
 {% for bet in user.bets %}
 
-{% if not bet.editable %}
+{% if not bet.match.editable and bet.valid %}
 
-<a href='/match/{{ bet.match.id }}'>{{ bet.match.team1.name }} - {{ bet.match.team2.name }}</a> {{ bet.outcome }} {{ bet.match.outcome }} {{ bet.points }}<br>
+<a href='/match/{{ bet.match.id }}'>{{ bet.match.team1.name }} - {{ bet.match.team2.name }}</a> {{ bet.outcome }} {{ bet.match.outcome if bet.match.outcome is not none }} {{ bet.points }}<br>
 
 {% endif %}
 
