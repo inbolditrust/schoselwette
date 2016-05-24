@@ -1,6 +1,6 @@
 from flask import Flask
 from flask.ext.wtf import Form
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, MetaData
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 from wtforms_alchemy import model_form_factory
@@ -28,6 +28,7 @@ login_manager.login_view = 'login'
 #Establish database connection
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], convert_unicode=True)
 db_session = scoped_session(sessionmaker(autocommit=False, autoflush=False, bind=engine))
+metadata = MetaData(bind=engine)
 Base = declarative_base()
 Base.query = db_session.query_property()
 

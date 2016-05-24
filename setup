@@ -7,4 +7,5 @@ venv/bin/pip3 install flask-login
 venv/bin/pip3 install flask-wtf
 venv/bin/pip3 install parse
 venv/bin/pip3 install sqlalchemy
+venv/bin/pip3 install sqlalchemy-migrate
 venv/bin/pip3 install wtforms-alchemy

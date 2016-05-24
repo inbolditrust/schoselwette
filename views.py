@@ -151,7 +151,6 @@ def int_or_none(v):
 
 class ChampionForm(Form):
     champion_id = SelectField('Champion',
-        choices=[(None, '')] + [(t.id, t.name) for t in db_session.query(Team).order_by('name')],
         coerce=int_or_none)
 
 @app.route('/')
@@ -159,13 +158,18 @@ class ChampionForm(Form):
 @login_required
 def main():
 
+
     if request.method == 'GET':
 
         form = ChampionForm(obj=current_user)
+        #TODO: Where to put this?
+        form.champion_id.choices=[(None, '')] + [(t.id, t.name) for t in db_session.query(Team).order_by('name')]
 
     if request.method == 'POST':
 
         form = ChampionForm()
+        #TODO: Where to put this?
+        form.champion_id.choices=[(None, '')] + [(t.id, t.name) for t in db_session.query(Team).order_by('name')]
 
         #This is just for the champion tip
         if form.validate():
