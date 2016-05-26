@@ -17,6 +17,8 @@ class User(Base):
 
     champion = relationship('Team')
 
+    MAX_SUPERTIPS = 4
+
     @property
     def points(self):
 
@@ -34,6 +36,10 @@ class User(Base):
             bet = Bet()
             bet.user = self
             bet.match = match
+
+    @property
+    def supertips(self):
+        return len([bet for bet in self.bets if bet.supertip])
 
     @property
     def name(self):
@@ -97,8 +103,7 @@ class Match(Base):
 
     @property
     def editable(self):
-        #return self.date > datetime.datetime.now()
-        return self.date > datetime.datetime(year=2016, month=6, day=15)
+        return self.date > datetime.datetime.now()
 
     @property
     def outcome(self):
@@ -121,7 +126,6 @@ class Match(Base):
 
         counter = Counter(valid_outcomes)
 
-        #TODO: normalize using n
         for o in counter.keys():
             counter[o] = n / counter[o] #n is always greater than counter
 
@@ -160,9 +164,12 @@ class Bet(Base):
         if self.outcome != self.match.outcome:
             return 0
 
-        odds = self.match.odds
+        points = self.match.odds[self.outcome]
 
-        return odds[self.outcome]
+        if self.supertip:
+            points = points * 2
+
+        return points
 
 
     def __repr__(self):

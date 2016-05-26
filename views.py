@@ -18,8 +18,6 @@ from flask_wtf import Form
 
 import hashlib
 
-
-
 @app.route('/')
 @app.route('/index')
 def index():
@@ -33,6 +31,7 @@ class LoginForm(Form):
 
     email = EmailField('Email')
     password = PasswordField('Password')
+    rememberme = BooleanField('Remember me')
 
 class RegistrationForm(ModelForm):
     class Meta:
@@ -67,7 +66,7 @@ def login():
 
         if user is not None:
 
-            login_user(user)
+            login_user(user, remember=form.rememberme.data)
 
             flash('Logged in successfully.')
 
@@ -158,6 +157,8 @@ class ChampionForm(Form):
 @login_required
 def main():
 
+    if not current_user.paid:
+        flash("You have not paid yet. If you don't pay until the beginning of the first match, you will be scratched.")
 
     if request.method == 'GET':
 
@@ -181,6 +182,8 @@ def main():
         #We only deal with editable bets here so that we do not by accident change old data
         editable_bets = [bet for bet in current_user.bets if bet.match.editable]
 
+        flashTooManySupertips = False
+
         #Iterate over all editable tips
         for bet in editable_bets:
             # We need to set all supertips and outcomes to None/False,
@@ -197,7 +200,20 @@ def main():
 
             if supertipField in request.form:
                 #No matter what was submitted, it means the box was checked
-                bet.supertip = True
+                if current_user.supertips < User.MAX_SUPERTIPS:
+                    bet.supertip = True
+                else:
+                    flashTooManySupertips = True
+
+        if flashTooManySupertips:
+            flash('You selected too many super bets.')
+
+    if current_user.champion == None:
+        flash('The champion bet can be changed until the first match begins.')
+
+    if current_user.supertips < User.MAX_SUPERTIPS:
+        flash('Super bets can be used only in the group stage.')
+
 
     sorted_bets = sorted(current_user.bets, key=lambda x: x.match.date)
 
@@ -228,3 +244,7 @@ def match(match_id):
     match = db_session.query(Match).filter(Match.id == match_id).one()
 
     return render_template('match.html', match=match)
+
+@app.route('/about')
+def about():
+    return render_template('about.html', match=match)

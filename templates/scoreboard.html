@@ -4,10 +4,24 @@
 
 <h1>Scoreboard</h1>
 
+<table>
+
+  <tr>
+    <th>Rank</th>
+    <th>Points</th>
+    <th>Name</th>
+  </tr>
+
 {% for user in scoreboard %}
 
-{{ user.points }} <a href='user/{{ user.id }}'>{{ user.name }}</a><br>
+<tr>
+
+<td>{{ loop.index }}</td><td>{{ user.points }}</td><td><a href='user/{{ user.id }}'>{{ user.name }}</a></td>
+
+</tr>
 
 {% endfor %}
+
+<table>
 
 {% endblock %}
