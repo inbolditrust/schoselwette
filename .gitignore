@@ -4,3 +4,5 @@ TODO
 db_repository
 venv
 __pycache__/
+config.py
+node_modules/

@@ -1,14 +1,24 @@
-<!-- extend base layout -->
 {% extends "base.html" %}
 
 {% block content %}
 <h1>Sign In</h1>
 <form action="/login" method="post" name="login">
     {{ form.hidden_tag() }}
-    <p>
-        {{ render_field(form.email) }}
-        {{ render_field(form.password) }}
-      </p>
+
+      <table>
+        <tr>
+        <td>{{ form.email.label }}</td>
+        <td>{{ render_field(form.email) }}</td>
+        </tr>
+        <tr>
+        <td>{{ form.password.label }}</td>
+        <td>{{ render_field(form.password) }}</td>
+        </tr>
+        <tr>
+        <td>{{ form.rememberme.label }}</td>
+        <td>{{ render_field(form.rememberme) }}</td>
+        </tr>
+      </table>
     <p><input type="submit" value="Sign In"></p>
 </form>
 

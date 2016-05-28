@@ -8,7 +8,7 @@ from flask.ext.login import current_user
 from flask.ext.login import login_required
 from wette import app, db_session, ModelForm, mail
 
-from models import Bet, User, Match, Outcome
+from models import Bet, User, Match, Outcome, Team
 
 from wtforms.fields import BooleanField, TextField, DecimalField, PasswordField, SelectField, FormField, FieldList, RadioField, HiddenField
 from wtforms.fields.html5 import EmailField
@@ -17,9 +17,6 @@ from wtforms.validators import Optional, Required, EqualTo, Length
 from flask_wtf import Form
 
 import hashlib
-
-salt = 'esekaesjAWFAKJnn;ea'
-
 
 @app.route('/')
 @app.route('/index')
@@ -34,6 +31,7 @@ class LoginForm(Form):
 
     email = EmailField('Email')
     password = PasswordField('Password')
+    rememberme = BooleanField('Remember me')
 
 class RegistrationForm(ModelForm):
     class Meta:
@@ -62,13 +60,13 @@ def login():
 
         #Connect loginform and database
 
-        q = db_session.query(User).filter(User.email == form.email.data, User.password == hashlib.md5(bytes(salt + form.password.data, 'utf-8')).hexdigest())
+        q = db_session.query(User).filter(User.email == form.email.data, User.password == hashlib.md5(bytes(app.config['PASSWORD_SALT'] + form.password.data, 'utf-8')).hexdigest())
 
         user = q.first()
 
         if user is not None:
 
-            login_user(user)
+            login_user(user, remember=form.rememberme.data)
 
             flash('Logged in successfully.')
 
@@ -84,6 +82,7 @@ def login():
 
 def send_mail(msg):
     try:
+        msg.sender = 'euro2016@schosel.net'
         mail.send(msg)
     except:
         print('Tried to send mail, did not work.')
@@ -101,16 +100,17 @@ def register():
         user.paid = False
 
         #Create password hash
-        user.password = hashlib.md5(bytes(salt + user.password, 'utf-8')).hexdigest()
+        user.password = hashlib.md5(bytes(app.config['PASSWORD_SALT'] + user.password, 'utf-8')).hexdigest()
         db_session.add(user)
 
         user.create_missing_bets()
 
-        msg = Message('Hello',
-                  sender='euro2016@schosel.net',
-                  recipients=[user.email])
+        send_mail(Message('Hello',
+                  recipients=[user.email]))
 
-        send_mail(msg)
+        send_mail(Message('Neuer Schoselwetter',
+                  body=str(user),
+                  recipients=['gnebehay@gmail.com']))
 
         return render_template('register_success.html')
 
@@ -138,35 +138,87 @@ class BetForm(ModelForm):
 class BetsForm(Form):
     bets = FieldList(FormField(BetForm))
 
+def int_or_none(v):
+
+    try:
+        ret = int(v)
+    except:
+        #TODO: Check exactly what kind of exception occurs here
+        ret = None
+
+    return ret
+
+class ChampionForm(Form):
+    champion_id = SelectField('Champion',
+        coerce=int_or_none)
+
 @app.route('/')
 @app.route('/main', methods=['GET', 'POST'])
 @login_required
 def main():
 
-    #Collect all matches
-    matches = [bet.match for bet in current_user.bets]
+    if not current_user.paid:
+        flash("You have not paid yet. If you don't pay until the beginning of the first match, you will be scratched.")
 
     if request.method == 'GET':
 
-        # drop bets into a multidictionary
-        bets_dict = MultiDict({'bets': current_user.bets})
-
-        # Build form
-        form = BetsForm(data=(bets_dict))
+        form = ChampionForm(obj=current_user)
+        #TODO: Where to put this?
+        form.champion_id.choices=[(None, '')] + [(t.id, t.name) for t in db_session.query(Team).order_by('name')]
 
     if request.method == 'POST':
 
-        form = BetsForm()
+        form = ChampionForm()
+        #TODO: Where to put this?
+        form.champion_id.choices=[(None, '')] + [(t.id, t.name) for t in db_session.query(Team).order_by('name')]
 
-        #TODO: Check for supertipp count here
-
+        #This is just for the champion tip
         if form.validate():
 
             form.populate_obj(current_user)
 
-    return render_template('main.html', matches=matches, form=form)
+        #TODO: Check for supertipp count here
 
-@app.route('/')
+        #We only deal with editable bets here so that we do not by accident change old data
+        editable_bets = [bet for bet in current_user.bets if bet.match.editable]
+
+        flashTooManySupertips = False
+
+        #Iterate over all editable tips
+        for bet in editable_bets:
+            # We need to set all supertips and outcomes to None/False,
+            # as unechecked boxes and radio fields are not contained in the form
+
+            bet.outcome = None
+            bet.supertip = False
+
+            outcomeField = 'outcome-{}'.format(bet.match.id)
+            supertipField = 'supertip-{}'.format(bet.match.id)
+
+            if outcomeField in request.form:
+                bet.outcome = request.form[outcomeField]
+
+            if supertipField in request.form:
+                #No matter what was submitted, it means the box was checked
+                if current_user.supertips < User.MAX_SUPERTIPS:
+                    bet.supertip = True
+                else:
+                    flashTooManySupertips = True
+
+        if flashTooManySupertips:
+            flash('You selected too many super bets.')
+
+    if current_user.champion == None:
+        flash('The champion bet can be changed until the first match begins.')
+
+    if current_user.supertips < User.MAX_SUPERTIPS:
+        flash('Super bets can be used only in the group stage.')
+
+
+    sorted_bets = sorted(current_user.bets, key=lambda x: x.match.date)
+
+    return render_template('main.html', bets=sorted_bets, form=form)
+
 @app.route('/scoreboard')
 @login_required
 def scoreboard():
@@ -176,3 +228,23 @@ def scoreboard():
     users_sorted = sorted(users, key=lambda x: x.points, reverse=True)
 
     return render_template('scoreboard.html', scoreboard = users_sorted)
+
+@app.route('/user/<int:user_id>')
+@login_required
+def user(user_id):
+
+    user = db_session.query(User).filter(User.id == user_id).one()
+
+    return render_template('user.html', user=user)
+
+@app.route('/match/<int:match_id>')
+@login_required
+def match(match_id):
+
+    match = db_session.query(Match).filter(Match.id == match_id).one()
+
+    return render_template('match.html', match=match)
+
+@app.route('/about')
+def about():
+    return render_template('about.html', match=match)

@@ -3,17 +3,19 @@
 <html>
   <head>
       <meta name="csrf-token" content="{{ csrf_token() }}">
-      <title>muh</title>
+      <title>Schoselwette Euro 2016</title>
+      <link rel="stylesheet" type="text/css" href="/static/style.css">
       {% block head %}{% endblock %}
   </head>
   <body>
     {% if current_user.is_authenticated %}
-  You are {{ current_user.name }}!
-  <a href='logout'>Logout</a>
-  <br>
-  <a href='main'>Home</a> <a href='scoreboard'>Scoreboard</a>
-  <hr>
+  Hi {{ current_user.name }}!
+  <a style='float:right'href='logout'>Logout</a>
+  <a href='/main'>Home</a>
+  <a href='/scoreboard'>Scoreboard</a>
 {% endif %}
+  <a href={{ url_for('about') }}>About</a>
+  <hr>
     {% with messages = get_flashed_messages() %}
       {% if messages %}
         <ul>

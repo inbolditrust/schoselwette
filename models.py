@@ -2,7 +2,8 @@ from collections import Counter
 from wette import Base, db_session
 from sqlalchemy import Column, Boolean, DateTime, String, Integer, ForeignKey, Enum, UniqueConstraint
 from sqlalchemy_utils import EmailType
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
+import datetime
 
 class User(Base):
     __tablename__ = 'users'
@@ -15,6 +16,8 @@ class User(Base):
     champion_id = Column(Integer, ForeignKey('teams.id'), nullable=True)
 
     champion = relationship('Team')
+
+    MAX_SUPERTIPS = 4
 
     @property
     def points(self):
@@ -33,6 +36,10 @@ class User(Base):
             bet = Bet()
             bet.user = self
             bet.match = match
+
+    @property
+    def supertips(self):
+        return len([bet for bet in self.bets if bet.supertip])
 
     @property
     def name(self):
@@ -59,6 +66,10 @@ class User(Base):
         return '<User: id={}, email={}, first_name={}, last_name={}, paid={}, champion_id={}>'.format(
             self.id, self.email, self.first_name, self.last_name, self.paid, self.champion_id)
 
+    @property
+    def champion_editable(self):
+        first_match = db_session.query(Match).order_by('date').first()
+        return first_match.date > datetime.datetime.now()
 
 
 class Team(Base):
@@ -83,32 +94,46 @@ class Match(Base):
     team2_id = Column(Integer, ForeignKey('teams.id'), nullable=False)
     date = Column(DateTime, nullable=False)
     stage = Column(Stage)
-    outcome = Column(Outcome)
+    goals_team1 = Column(Integer)
+    goals_team2 = Column(Integer)
 
     team1 = relationship('Team', foreign_keys=[team1_id])
     team2 = relationship('Team', foreign_keys=[team2_id])
     __table_args__ = (UniqueConstraint('team1_id', 'team2_id', 'stage'),)
 
+    @property
+    def editable(self):
+        return self.date > datetime.datetime.now()
+
+    @property
+    def outcome(self):
+        if self.goals_team1 is None or self.goals_team2 is None:
+            return None
+        if self.goals_team1 > self.goals_team2:
+            return '1'
+        if self.goals_team1 < self.goals_team2:
+            return '2'
+        return 'X'
+
     # Returns a dictionary from outcome -> odd
     @property
     def odds(self):
 
-        valid_bets = [bet for bet in self.bets if bet.is_valid()]
+        valid_bets = [bet for bet in self.bets if bet.valid]
         valid_outcomes = [bet.outcome for bet in valid_bets]
 
         n = len(valid_bets)
 
         counter = Counter(valid_outcomes)
 
-        #TODO: normalize using n
         for o in counter.keys():
             counter[o] = n / counter[o] #n is always greater than counter
 
         return counter
 
     def __repr__(self):
-        return '<Match: id={}, team1={}, team2={}, date={}, stage={}, outcome={}>'.format(
-            self.id, self.team1.name, self.team2.name, self.date, self.stage, self.outcome)
+        return '<Match: id={}, team1={}, team2={}, date={}, stage={}, goals_team1={}, goals_team2={}>'.format(
+            self.id, self.team1.name, self.team2.name, self.date, self.stage, self.goals_team1, self.goals_team2)
 
 
 class Bet(Base):
@@ -119,28 +144,32 @@ class Bet(Base):
     outcome = Column(Outcome)
     supertip = Column(Boolean, default=False, nullable=False)
 
-    user = relationship('User', backref='bets')
     match = relationship('Match', backref='bets')
+    user = relationship('User', backref='bets')
 
     __table_args__ = (UniqueConstraint('user_id', 'match_id'),)
 
-    def is_valid(self):
+    @property
+    def valid(self):
         return self.outcome is not None
 
     @property
     def points(self):
 
         #Make sure that outcome is not None
-        if not self.is_valid():
+        if not self.valid:
             return 0
 
         #Make sure that the bet is correct
         if self.outcome != self.match.outcome:
             return 0
 
-        odds = self.match.odds
+        points = self.match.odds[self.outcome]
 
-        return odds[self.outcome]
+        if self.supertip:
+            points = points * 2
+
+        return points
 
 
     def __repr__(self):
