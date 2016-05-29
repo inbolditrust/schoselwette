@@ -7,22 +7,22 @@
 ```
 2) Copy config-sample.py to config.py
 ```
-  cp config-sample.py config.py
+cp config-sample.py config.py
 ```
 
 3) Create database
 ```
-  ./db_create.py
+./db_create.py
 ```
 
 4) Populate database with meaningful stuff
 ```
-  ./import_stuff.py
+./import_stuff.py
 ```
 
 5) Start app
 ```
-  ./run.py
+./run.py
 ```
 
 6) ????
