@@ -9,10 +9,16 @@
   </head>
   <body>
     {% if current_user.is_authenticated %}
-  Hi {{ current_user.name }}!
-  <a style='float:right'href='logout'>Logout</a>
+
+  <span style='float:right'>
+    {{ current_user.name }}
+    <a href='{{ url_for('profile') }}'>Profile</a>
+    <a href='{{ url_for('logout') }}'>Logout</a>
+  </span>
   <a href='/main'>Home</a>
   <a href='/scoreboard'>Scoreboard</a>
+{% else %}
+  <a href='/'>Home</a>
 {% endif %}
   <a href={{ url_for('about') }}>About</a>
   <hr>

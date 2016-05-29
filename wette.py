@@ -1,5 +1,5 @@
 from flask import Flask
-from flask.ext.wtf import Form
+from flask_wtf import Form
 from sqlalchemy import create_engine
 from sqlalchemy.orm import scoped_session, sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
@@ -7,9 +7,9 @@ from wtforms_alchemy import model_form_factory
 
 
 from flask_wtf.csrf import CsrfProtect
-from flask.ext.login import LoginManager
+from flask_login import LoginManager
 
-from flask.ext.mail import Mail
+from flask_mail import Mail
 
 app = Flask(__name__)
 mail = Mail(app)

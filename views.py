@@ -2,10 +2,10 @@ from collections import namedtuple
 from werkzeug.datastructures import MultiDict
 from flask import flash, render_template, request, redirect, jsonify, url_for
 from flask_mail import Message
-from flask.ext.login import login_user
-from flask.ext.login import logout_user
-from flask.ext.login import current_user
-from flask.ext.login import login_required
+from flask_login import login_user
+from flask_login import logout_user
+from flask_login import current_user
+from flask_login import login_required
 from wette import app, db_session, ModelForm, mail
 
 from models import Bet, User, Match, Outcome, Team
@@ -14,7 +14,7 @@ from wtforms.fields import BooleanField, TextField, DecimalField, PasswordField,
 from wtforms.fields.html5 import EmailField
 from wtforms.validators import Optional, Required, EqualTo, Length
 
-from flask_wtf import Form
+from flask_wtf import Form, RecaptchaField
 
 import hashlib
 
@@ -33,6 +33,7 @@ class LoginForm(Form):
     password = PasswordField('Password')
     rememberme = BooleanField('Remember me')
 
+
 class RegistrationForm(ModelForm):
     class Meta:
         model = User
@@ -40,6 +41,7 @@ class RegistrationForm(ModelForm):
 
     password = PasswordField('Password', validators=[Length(min=8), EqualTo('confirm', message='The passwords do not match.')])
     confirm = PasswordField('Confirm Password')
+    recaptcha = RecaptchaField()
 
 @app.route("/logout")
 @login_required
@@ -49,16 +51,9 @@ def logout():
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    # Here we use a class of some kind to represent and validate our
-    # client-side form data. For example, WTForms is a library that will
-    # handle this for us, and we use a custom LoginForm to validate.
 
     form = LoginForm()
     if request.method == 'POST' and form.validate():
-        # Login and validate the user.
-        # user should be an instance of your `User` class
-
-        #Connect loginform and database
 
         q = db_session.query(User).filter(User.email == form.email.data, User.password == hashlib.md5(bytes(app.config['PASSWORD_SALT'] + form.password.data, 'utf-8')).hexdigest())
 
@@ -177,8 +172,6 @@ def main():
 
             form.populate_obj(current_user)
 
-        #TODO: Check for supertipp count here
-
         #We only deal with editable bets here so that we do not by accident change old data
         editable_bets = [bet for bet in current_user.bets if bet.match.editable]
 
@@ -248,3 +241,21 @@ def match(match_id):
 @app.route('/about')
 def about():
     return render_template('about.html', match=match)
+
+class UserForm(ModelForm):
+    class Meta:
+        model = User
+        exclude = ['paid', 'password']
+
+@app.route('/profile', methods=['GET', 'POST'])
+def profile():
+
+    form = UserForm(obj=current_user)
+
+    if request.method == 'POST' and form.validate():
+        form.populate_obj(current_user)
+
+        flash('Your profile has been updated')
+        return redirect('main')
+
+    return render_template('edit_profile.html', form=form)
