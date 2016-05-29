@@ -1,21 +1,30 @@
 # Instructions
 
 1) Install python stuff
+```
+./setup
 
-  ./setup
+```
+2) Copy config-sample.py to config.py
+```
+  cp config-sample.py config.py
+```
 
-2) Create database
+3) Create database
+```
+  ./db_create.py
+```
 
-  ./app_db.py
-
-3) Populate database with meaningful stuff
-
+4) Populate database with meaningful stuff
+```
   ./import_stuff.py
+```
 
-4) Start app
-
+5) Start app
+```
   ./run.py
+```
 
-5) ????
+6) ????
 
-6) PROFIT!!!
+7) PROFIT!!!
