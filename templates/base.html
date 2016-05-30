@@ -5,26 +5,52 @@
       <meta name="csrf-token" content="{{ csrf_token() }}">
       <title>Schoselwette Euro 2016</title>
       <link rel="stylesheet" type="text/css" href="/static/style.css">
+      <script src="https://use.typekit.net/qvf0aql.js"></script>
+      <script>try{Typekit.load({ async: true });}catch(e){}</script>
       {% block head %}{% endblock %}
   </head>
   <body>
+    <header class="header">
+      <h1 class="logo">Schosel</h1>
+      <nav class="nav">
     {% if current_user.is_authenticated %}
-  Hi {{ current_user.name }}!
-  <a style='float:right'href='logout'>Logout</a>
-  <a href='/main'>Home</a>
-  <a href='/scoreboard'>Scoreboard</a>
-{% endif %}
-  <a href={{ url_for('about') }}>About</a>
-  <hr>
-    {% with messages = get_flashed_messages() %}
-      {% if messages %}
-        <ul>
-        {% for message in messages %}
-            <li>{{ message }} </li>
-        {% endfor %}
+        <ul class="nav__items">
+          <li class="nav__item">
+            <a class="nav__link" href='/main'>Bets</a>
+          </li>
+          <li class="nav__item">
+            <a class="nav__link" href='/scoreboard'>Scoreboard</a>
+          </li>
+          <li class="nav__item">
+            <a href={{ url_for('about') }}>About</a>
+          </li>
+          <li class="nav__item">
+            <a class="nav__link" href='logout'>Logout</a>
+          </li>
         </ul>
-      {% endif %}
-    {% endwith %}
-{% block content %}{% endblock %}
+    {% else %}
+        <ul class="nav__items">
+          <li class="nav__item">
+            <a href={{ url_for('about') }}>About</a>
+          </li>
+        </ul>
+    {% endif %}
+      </nav>
+    </header>
+    <main class="main">
+      <div class="wrapper">
+        <h2>Hi {{ current_user.first_name }}!</h2>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul class="msgs">
+            {% for message in messages %}
+              <li class="msg">{{ message }} </li>
+            {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+      </div>
+    {% block content %}{% endblock %}
+    </main>
   </body>
 </html>
