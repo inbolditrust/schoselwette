@@ -154,6 +154,19 @@ th {
   text-align:left;
 }
 
+.form label {
+  display: block;
+  font-size: 1.2rem;
+  color: #aaa;
+}
+
+.form input {
+  display: inline-block;
+  margin-bottom: 1.2rem;
+  padding: .8rem 1.2rem;
+  font-size: 1.6rem;
+}
+
 @media (max-width: 1000px) {
   .wrapper {
     padding: 0 1.2rem;
@@ -210,19 +223,6 @@ th {
   .label {
     font-size: 1.2rem;
     color: #aaa;
-  }
-
-  .form label {
-    display: block;
-    font-size: 1.2rem;
-    color: #aaa;
-  }
-
-  .form input {
-    display: inline-block;
-    margin-bottom: 1.2rem;
-    padding: .8rem 1.2rem;
-    font-size: 1.6rem;
   }
 
   .group {
