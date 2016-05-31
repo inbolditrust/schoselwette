@@ -1,29 +1,26 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<div class="wrapper">
 <h1>Edit Profile</h1>
-
 <p>Your full name will not appear anywhere on this site.</p>
 
-<form action="{{ url_for('profile') }}" method="post" name="profile">
+<form class='form' action="{{ url_for('profile') }}" method="post" name="profile">
     {{ form.hidden_tag() }}
-    <table>
-      <tr>
-    <td>{{ form.first_name.label }}</td>
-      <td>{{ render_field(form.first_name) }}</td>
-    </tr>
-      <tr>
-    <td>{{ form.last_name.label }}</td>
-      <td>{{ render_field(form.last_name) }}</td>
-    </tr>
-      <tr>
-    <td>{{ form.email.label }}</td>
-      <td>{{ render_field(form.email) }}</td>
-    </tr>
-    <table>
-    <p><input type="submit" value="Save"></p>
+
+    {{ form.first_name.label }}
+    {{ render_field(form.first_name) }}
+
+    {{ form.last_name.label }}
+    {{ render_field(form.last_name) }}
+
+
+    {{ form.email.label }}
+    {{ render_field(form.email) }}
+
+    <p><input class="btn btn--primary" type="submit" value="Save"></p>
 </form>
+</div>
 
 <a href='index'>Cancel</a>
 
