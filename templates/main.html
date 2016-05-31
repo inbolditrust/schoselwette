@@ -3,7 +3,7 @@
 {% block content %}
 
 <div class="wrapper">
-  <h2>Bets</h2>
+  <h1>Bets</h1>
 </div>
 <form action="/main" method="post" name="main">
 {{ form.hidden_tag() }}
@@ -97,9 +97,9 @@
 </tbody>
 </table>
 
-<div class="wrapper">
-  <input class="btn" type="submit" value="Save">
-</div>
+<footer class="footer">
+  <input class="btn btn--primary btn--large" type="submit" value="Save">
+</footer>
 </form>
 
 {% endblock %}

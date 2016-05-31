@@ -1,27 +1,18 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="wrapper">
 <h1>Sign In</h1>
-<form action="/login" method="post" name="login">
+<form class="form" action="/login" method="post" name="login">
     {{ form.hidden_tag() }}
 
-      <table>
-        <tr>
-        <td>{{ form.email.label }}</td>
-        <td>{{ render_field(form.email) }}</td>
-        </tr>
-        <tr>
-        <td>{{ form.password.label }}</td>
-        <td>{{ render_field(form.password) }}</td>
-        </tr>
-        <tr>
-        <td>{{ form.rememberme.label }}</td>
-        <td>{{ render_field(form.rememberme) }}</td>
-        </tr>
-      </table>
-    <p><input type="submit" value="Sign In"></p>
+    {{ form.email.label }}
+    {{ render_field(form.email) }}
+
+    {{ form.password.label }}
+    {{ render_field(form.password) }}
+
+    <p><input class="btn btn--primary" type="submit" value="Sign In"><a style="margin-left:24px;" href='index'>Cancel</a></p>
 </form>
-
-<a href='index'>Cancel</a>
-
+</div>
 {% endblock %}

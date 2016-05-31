@@ -39,9 +39,9 @@
     </header>
     <main class="main">
       <div class="wrapper">
-        <h2>Hi {{ current_user.first_name }}!</h2>
         {% with messages = get_flashed_messages() %}
           {% if messages %}
+          <h1>Hi {{ current_user.first_name }}!</h1>
             <ul class="msgs">
             {% for message in messages %}
               <li class="msg">{{ message }} </li>
