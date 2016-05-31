@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<div class="wrapper">
 <h1>{{ user.name }}</h1>
 
 {% for bet in user.bets %}
@@ -13,5 +13,5 @@
 {% endif %}
 
 {% endfor %}
-
+</div>
 {% endblock %}

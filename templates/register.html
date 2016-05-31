@@ -1,33 +1,14 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<div class="wrapper">
 <h1>Sign Up</h1>
 
 <p>Your full name will not appear anywhere on this site.</p>
 
-<form action="/register" method="post" name="register">
+<form class="form" method=""action="/register" method="post" name="register">
     {{ form.hidden_tag() }}
-    <table>
-      <tr>
-    <td>{{ form.first_name.label }}</td>
-      <td>{{ render_field(form.first_name) }}</td>
-    </tr>
-      <tr>
-    <td>{{ form.last_name.label }}</td>
-      <td>{{ render_field(form.last_name) }}</td>
-    </tr>
-      <tr>
-    <td>{{ form.email.label }}</td>
-      <td>{{ render_field(form.email) }}</td>
-    </tr>
-      <tr>
-    <td>{{ form.password.label }}</td>
-      <td>{{ render_field(form.password) }}</td>
-    </tr>
-      <tr>
-    <td>{{ form.confirm.label }}</td>
-      <td>{{ render_field(form.confirm) }}</td>
+      <td></td>
     </tr>
       <tr>
         <td></td><td>{{ form.recaptcha }}</td>
@@ -36,6 +17,24 @@
     <p><input type="submit" value="Register"></p>
 </form>
 
-<a href='index'>Cancel</a>
+    {{ form.first_name.label }}
+    {{ render_field(form.first_name) }}
 
+    {{ form.last_name.label }}
+    {{ render_field(form.last_name) }}
+
+    {{ form.email.label }}
+    {{ render_field(form.email) }}
+
+    {{ form.password.label }}
+    {{ render_field(form.password) }}
+
+    {{ form.confirm.label }}
+    {{ render_field(form.confirm) }}
+
+    {{ render_field(form.confirm) }}
+
+    <p><input class="btn btn--primary" type="submit" value="Register"><a style="margin-left:24px;" href='index'>Cancel</a></p>
+</form>
+</div>
 {% endblock %}

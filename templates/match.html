@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block content %}
-
+<div class="wrapper">
 <h1>{{ match.team1.name }} - {{ match.team2.name }}</h1>
 
 {% if not match.editable %}
@@ -17,5 +17,5 @@
 {% endfor %}
 
 {% endif %}
-
+</div>
 {% endblock %}

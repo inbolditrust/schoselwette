@@ -1,27 +1,28 @@
 {% extends "base.html" %}
 
 {% block content %}
+<div class="wrapper">
+  <h1>Scoreboard</h1>
 
-<h1>Scoreboard</h1>
+  <table>
+    <thead>
+      <th>Rank</th>
+      <th>Points</th>
+      <th>Name</th>
+    </thead>
+    <tbody>
+      {% for user in scoreboard %}
 
-<table>
+      <tr>
 
-  <tr>
-    <th>Rank</th>
-    <th>Points</th>
-    <th>Name</th>
-  </tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ user.points }}</td>
+      <td><a href='user/{{ user.id }}'>{{ user.name }}</a></td>
 
-{% for user in scoreboard %}
+      </tr>
 
-<tr>
-
-<td>{{ loop.index }}</td><td>{{ user.points }}</td><td><a href='user/{{ user.id }}'>{{ user.name }}</a></td>
-
-</tr>
-
-{% endfor %}
-
-<table>
-
+      {% endfor %}
+    </tbody>
+  <table>
+</div>
 {% endblock %}
