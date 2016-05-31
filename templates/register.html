@@ -8,14 +8,6 @@
 
 <form class="form" method=""action="/register" method="post" name="register">
     {{ form.hidden_tag() }}
-      <td></td>
-    </tr>
-      <tr>
-        <td></td><td>{{ form.recaptcha }}</td>
-    </tr>
-    <table>
-    <p><input type="submit" value="Register"></p>
-</form>
 
     {{ form.first_name.label }}
     {{ render_field(form.first_name) }}
@@ -32,7 +24,7 @@
     {{ form.confirm.label }}
     {{ render_field(form.confirm) }}
 
-    {{ render_field(form.confirm) }}
+    {{ form.recaptcha }}
 
     <p><input class="btn btn--primary" type="submit" value="Register"><a style="margin-left:24px;" href='index'>Cancel</a></p>
 </form>
