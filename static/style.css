@@ -96,6 +96,9 @@ p {
   background: #fff;
   border-bottom: 1px solid #d1d1d1;
 }
+.main {
+  padding-bottom: 4.7rem;
+}
 .footer {
   position: fixed;
   right:0;
