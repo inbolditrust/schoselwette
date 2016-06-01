@@ -99,6 +99,11 @@ p {
 .main {
   padding-bottom: 4.7rem;
 }
+.cf:after {
+  content: " ";
+  display: table;
+  clear: both;
+}
 .footer {
   position: fixed;
   right:0;
